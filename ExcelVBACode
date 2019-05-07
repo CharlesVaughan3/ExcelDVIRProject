@@ -1,0 +1,575 @@
+
+Option Explicit
+
+'NOTE:  Set reference to Microsoft Scripting Runtime
+Sub FindInFile()
+    
+'Set all variables
+Dim sBaseFolder As String, sFindText As String, sFindTracNum As String
+Dim sFindTrailNum As String, sFindRemarks As String, sFindDefect As String, sTracDef As String
+Dim sTrailDef As String, sTrailDef1 As String
+Dim fso As FileSystemObject, FIs As Files, FI As File, FO As Folder
+Dim TS As TextStream
+Dim colL As Collection, Status As Collection, TracNum As Collection, TrailNum As Collection
+Dim TractorDefect As Collection, TrailerDefect As Collection
+Dim Remarks As Collection, Defect As Collection, cL As cLines
+Dim S As String, C As String, strPath As String
+Dim I As Long, T As Long, G As Long, H As Long, J As Long, K As Long, L As Long, M As Long
+Dim R As Range, B As Range
+Dim wsRes As Worksheet, rRes As Range, vRes() As Variant
+Dim lo As ListObject, lRows As Long, sMoreDefects As String, sMoreTracDefects As String, sTrailAcception2 As String
+Dim sFindTrailDefects As String, sAcception As String, sTrailAcception As String, sTracDef1 As String
+Dim myPath As String, sStatus As String
+Dim Pending As String
+Dim sTrailAcception1 As String
+Dim xStrDate As String
+Dim Q As String, D1 As String, D2 As String, D3 As Long
+Dim Z As String
+
+'Set constant variables
+Pending = "Pending"
+D1 = "Tractor Defect?: Yes Yes"
+D2 = "Tractor Defect?: No No"
+Z = "Trailer Defect?: Yes Yes"
+Q = " "
+
+'Set results worksheet and range
+Set wsRes = Worksheets("Sheet1")
+Set rRes = wsRes.Cells(1, 1)
+   
+'Set text you will search for in files
+sFindText = "Driver Name:"
+sFindTracNum = "sent this message:"
+sFindTrailNum = "Trailer #:"
+sFindRemarks = "Remarks:"
+sFindDefect = "Defect Found?:"
+sTrailDef = "Trailer Defect?: Yes"
+sTrailDef1 = "Trailer Defect?: No"
+sTracDef = "Tractor Defect?: Yes"
+sTracDef1 = "Tractor Defect?: No"
+sFindTrailDefects = "No Trailer Defect?: Yes"
+sMoreDefects = "More Tractor defects?: Yes"
+sMoreTracDefects = "More Trailer defects?: Yes"
+sAcception = "Yes Trailer Defect Details?: Tires"
+sTrailAcception = "Defect?: Yes Trailer Defect"
+sTrailAcception1 = "Defect?: No Date"
+sTrailAcception2 = "No Date time:"
+sStatus = "Status: "
+
+
+'Specify the folder
+strPath = "T:\ExcelProject\DVIR's\"
+
+'Variable that determines how long the Pending default status will write
+Dim KCLR As Long
+KCLR = 500
+
+'For loop to delete files that have the truck problems solved written to text file
+For I = 1 To Rows.Count
+    If Cells(I, 8).Value = "Complete" Then
+        Set fso = VBA.CreateObject("Scripting.FileSystemObject")
+        myPath = Cells(I, 7)
+        xStrDate = Format(Now, "yyyy-mm-dd hh-mm-ss")
+        
+        'Write complete to the completed DVIR, and attach a time stamp
+        Open "T:\ExcelProject\DVIR's\" & Cells(I, 7) For Append As #1
+        Print #1, "Status: Complete " & xStrDate
+        Close #1
+        
+        'Copy File to another File path
+        fso.CopyFile ("T:\ExcelProject\DVIR's\" & Cells(I, 7)), "T:\ExcelProject\Complete DVIR's\", True
+        
+        'Delete file
+        Kill "T:\ExcelProject\DVIR's\" & Cells(I, 7)
+                       
+    'Append the In Shop status to text file
+    ElseIf Cells(I, 8).Value = "In Shop" Then
+        Dim iFileNum As Integer
+        Dim sFileName As String
+        Dim sBuf As String
+        Dim sTemp As String
+        
+        sFileName = "T:\ExcelProject\DVIR's\" & Cells(I, 7)
+    
+        iFileNum = FreeFile
+        Open sFileName For Input As iFileNum
+    
+        Do Until EOF(iFileNum)
+            Line Input #iFileNum, sBuf
+            sTemp = sTemp & sBuf & vbCrLf
+        Loop
+        Close iFileNum
+    
+        sTemp = Replace(sTemp, "IMessage / Form: DVIR Truck Trailer", "Status: In the Shop")
+    
+        iFileNum = FreeFile
+        Open sFileName For Output As iFileNum
+        Print #iFileNum, sTemp
+        Close iFileNum
+    End If
+Next I
+
+'Get the Text files in the folder
+Set fso = New FileSystemObject
+Set FO = fso.GetFolder(strPath)
+Set FIs = FO.Files
+
+'Collect the information
+Set colL = New Collection
+Set TracNum = New Collection
+Set TrailNum = New Collection
+Set Remarks = New Collection
+Set Defect = New Collection
+Set Status = New Collection
+Set TractorDefect = New Collection
+Set TrailerDefect = New Collection
+
+'Get each field out of the text files
+For Each FI In FIs
+With FI
+    If .Name Like "*.txt" Then
+        I = 0
+        Dim D As Long
+        D = 1
+        D3 = 0
+        Set TS = fso.OpenTextFile(strPath & "\" & .Name, ForReading)
+        Do Until TS.AtEndOfStream
+            S = TS.ReadLine
+            I = I + 1
+            Set cL = New cLines
+            
+            'Check if the line from the text file contains the text we are looking for
+            If InStr(1, S, sFindText, vbTextCompare) > 0 Then
+                With cL
+                    .Folder = FI.Name
+                    .LineText = S
+                    .Pending = Pending
+                End With
+                
+                colL.Add cL
+            ElseIf InStr(1, S, sFindTrailNum, vbTextCompare) > 0 Then
+                With cL
+                    .TrailNum = S
+                End With
+
+                TrailNum.Add cL
+            ElseIf InStr(1, S, sFindRemarks, vbTextCompare) > 0 Then
+                With cL
+                    .Remarks = S
+                End With
+
+                Remarks.Add cL
+            ElseIf InStr(1, S, sStatus, vbTextCompare) > 0 Then
+                With cL
+                    .Status = S
+                End With
+
+                Status.Add cL
+            End If
+            If InStr(1, S, sTracDef, vbTextCompare) > 0 Then
+                With cL
+                    .TractorDefect = D1
+                End With
+                
+                D = 0
+                TractorDefect.Add cL
+            ElseIf InStr(1, S, sTracDef1, vbTextCompare) > 0 Then
+                With cL
+                    .TractorDefect = D2
+                End With
+                
+                TractorDefect.Add cL
+            End If
+            
+            If InStr(1, S, sTrailDef, vbTextCompare) > 0 Then
+                
+                If D = 0 Then
+                  With cL
+                      .LineText = Q
+                      .TracNum = Q
+                      .TrailNum = Q
+                      .TractorDefect = Q
+                      .TrailerDefect = "Trailer Defect? Yes Yes"
+                      .Status = Q
+                  End With
+            
+                      colL.Add cL
+                      TrailNum.Add cL
+                      TracNum.Add cL
+                      TractorDefect.Add cL
+                      TrailerDefect.Add cL
+                      Status.Add cL
+                      D3 = 1
+                    Else
+                        With cL
+                            .TrailerDefect = "Trailer Defect?: Yes Yes"
+                        End With
+                        
+                        D3 = 1
+                End If
+                    TrailerDefect.Add cL
+            ElseIf InStr(1, S, sTrailAcception, vbTextCompare) > 0 Then
+                
+                If D = 0 Then
+                  With cL
+                      .LineText = Q
+                      .TracNum = Q
+                      .TrailNum = Q
+                      .TractorDefect = Q
+                      .TrailerDefect = "Trailer Defect? Yes Yes"
+                  End With
+            
+                      colL.Add cL
+                      TrailNum.Add cL
+                      TracNum.Add cL
+                      TractorDefect.Add cL
+                      TrailerDefect.Add cL
+                      D3 = 1
+                Else
+                        With cL
+                            .TrailerDefect = Z
+                        End With
+                        
+                        D3 = 1
+                End If
+                    TrailerDefect.Add cL
+            ElseIf InStr(1, S, sFindTrailDefects, vbTextCompare) > 0 Then
+            
+                If D = 0 Then
+                    With cL
+                        .LineText = Q
+                        .TracNum = Q
+                        .TrailNum = Q
+                        .TractorDefect = Q
+                        .TrailerDefect = Z
+                        .Status = Q
+                    End With
+                    
+                    colL.Add cL
+                    TrailNum.Add cL
+                    TracNum.Add cL
+                    TractorDefect.Add cL
+                    TrailerDefect.Add cL
+                    Status.Add cL
+                Else
+                        With cL
+                            .TrailerDefect = Z
+                        End With
+                        
+                        D3 = 1
+                End If
+                    TrailerDefect.Add cL
+            End If
+            
+            If InStr(1, S, sTrailDef1, vbTextCompare) > 0 Then
+            
+                With cL
+                    .TrailerDefect = "Trailer Defect?: No No"
+                End With
+
+                TrailerDefect.Add cL
+            ElseIf InStr(1, S, sTrailAcception1, vbTextCompare) > 0 Then
+                   
+                With cL
+                    .TrailerDefect = Z
+                End With
+       
+                TrailerDefect.Add cL
+            ElseIf InStr(1, S, sTrailAcception2, vbTextCompare) > 0 Then
+                
+                If D3 = 0 Then
+                     With cL
+                         .TrailerDefect = Z
+                     End With
+            
+                     TrailerDefect.Add cL
+                End If
+            End If
+            
+            If InStr(1, S, sFindTracNum, vbTextCompare) > 0 Then
+                With cL
+                    .TracNum = S
+                End With
+
+                TracNum.Add cL
+            End If
+            
+            If InStr(1, S, sMoreDefects, vbTextCompare) > 0 Then
+                                
+                With cL
+                    .LineText = Q
+                    .TracNum = Q
+                    .TrailNum = Q
+                    .TractorDefect = Q
+                    .TrailerDefect = Q
+                    .Status = Q
+                End With
+
+                colL.Add cL
+                TrailNum.Add cL
+                TracNum.Add cL
+                TractorDefect.Add cL
+                TrailerDefect.Add cL
+                Status.Add cL
+            End If
+             
+            If InStr(1, S, sMoreTracDefects, vbTextCompare) > 0 Then
+                
+                With cL
+                    .LineText = Q
+                    .TracNum = Q
+                    .TrailNum = Q
+                    .TractorDefect = Q
+                    .TrailerDefect = Q
+                    .Status = Q
+                End With
+
+                colL.Add cL
+                TrailNum.Add cL
+                TracNum.Add cL
+                TractorDefect.Add cL
+                TrailerDefect.Add cL
+                Status.Add cL
+                End If
+        Loop
+    End If
+End With
+Next FI
+
+'Write the collection to a VBA array
+ReDim vRes(0 To Remarks.Count, 1 To 8)
+
+'Column Headers
+vRes(0, 1) = "Driver Name"
+vRes(0, 2) = "Tractor#"
+vRes(0, 3) = "Trailer#"
+vRes(0, 4) = "Tractor Defect"
+vRes(0, 5) = "Trailer Defect"
+vRes(0, 6) = "Remarks"
+vRes(0, 7) = "Path"
+vRes(0, 8) = "Status"
+
+'Get all of the information on the correct line
+For I = 1 To colL.Count
+With colL(I)
+    vRes(I, 1) = .LineText
+    vRes(I, 7) = .Folder
+End With
+Next I
+
+For J = 1 To TracNum.Count
+With TracNum(J)
+    vRes(J, 2) = .TracNum
+End With
+Next J
+
+For T = 1 To TrailNum.Count
+With TrailNum(T)
+    vRes(T, 3) = .TrailNum
+End With
+Next T
+
+For L = 1 To TractorDefect.Count
+With TractorDefect(L)
+    vRes(L, 4) = .TractorDefect
+End With
+Next L
+
+For M = 1 To TrailerDefect.Count
+With TrailerDefect(M)
+    vRes(M, 5) = .TrailerDefect
+End With
+Next M
+
+For G = 1 To Remarks.Count
+With Remarks(G)
+    vRes(G, 6) = .Remarks
+End With
+Next G
+
+For K = 1 To Status.Count
+With Status(K)
+    vRes(K, 8) = .Status
+End With
+Next K
+
+'Write to the worksheet
+Application.ScreenUpdating = False
+Set rRes = rRes.Resize(UBound(vRes, 1) + 1, UBound(vRes, 2))
+With rRes
+    .EntireColumn.Clear
+    .Value = vRes
+    With .Rows(1)
+        .Font.Bold = True
+        .HorizontalAlignment = xlCenter
+        .RowHeight = 36
+    End With
+    .EntireColumn.ColumnWidth = 45
+    With .EntireRow
+        .WrapText = True
+        .VerticalAlignment = xlCenter
+        '.AutoFit
+    End With
+    .EntireColumn.AutoFit
+
+    'Remove the word that is found(shorten/format text)
+    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(1).Cells
+        I = 1
+        Do
+            I = InStr(I, R.Text, sFindText, vbTextCompare)
+            With R.Characters(I, Len(sFindText))
+                .Delete
+            End With
+            I = InStr(I + 1, R.Text, sFindText, vbTextCompare)
+            
+        Loop Until I = 0
+    Next R
+    
+    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(3).Cells
+        I = 1
+        Do
+            I = InStr(I, R.Text, sFindTrailNum, vbTextCompare)
+            With R.Characters(I, Len(sFindTrailNum))
+                .Delete
+            End With
+            I = InStr(I + 1, R.Text, sFindTrailNum, vbTextCompare)
+            
+        Loop Until I = 0
+    Next R
+    
+    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(6).Cells
+        I = 1
+        Do
+            I = InStr(I, R.Text, sFindRemarks, vbTextCompare)
+            With R.Characters(I, Len(sFindRemarks))
+                .Delete
+            End With
+            I = InStr(I + 1, R.Text, sFindRemarks, vbTextCompare)
+            
+        Loop Until I = 0
+    Next R
+    
+    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(2).Cells
+        I = 1
+        Do
+            I = InStr(I, R.Text, sFindTracNum, vbTextCompare)
+            With R.Characters(I, Len(sFindTracNum))
+                .Delete
+            End With
+              
+            I = InStr(I + 1, R.Text, sFindTracNum, vbTextCompare)
+            
+        Loop Until I = 0
+    Next R
+    
+    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(8).Cells
+        I = 1
+        Do
+            I = InStr(I, R.Text, sStatus, vbTextCompare)
+            With R.Characters(I, Len(sStatus))
+                .Delete
+            End With
+              
+            I = InStr(I + 1, R.Text, sStatus, vbTextCompare)
+            
+        Loop Until I = 0
+    Next R
+    
+    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(4).Cells
+        I = 1
+        Do
+            I = InStr(I, R.Text, sTracDef, vbTextCompare)
+            With R.Characters(I, Len(sTracDef))
+                .Delete
+            End With
+              
+            I = InStr(I + 1, R.Text, sTracDef, vbTextCompare)
+            
+        Loop Until I = 0
+    Next R
+    
+    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(5).Cells
+        I = 1
+        Do
+            I = InStr(I, R.Text, sTrailDef, vbTextCompare)
+            With R.Characters(I, Len(sTrailDef))
+                .Delete
+            End With
+              
+            I = InStr(I + 1, R.Text, sTrailDef, vbTextCompare)
+            
+        Loop Until I = 0
+    Next R
+End With
+
+'Formatting specific Rows
+Columns("G:G").ColumnWidth = 0.23
+Columns("H:H").ColumnWidth = 17.83
+    
+'Add the selection to Column G
+Columns("H:H").Select
+With Selection.Validation
+    .Delete
+    .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:= _
+    xlBetween, Formula1:="=Sheet2!$A$1:$A$3"
+    .IgnoreBlank = True
+    .InCellDropdown = True
+    .InputTitle = ""
+    .ErrorTitle = ""
+    .InputMessage = ""
+    .ErrorMessage = ""
+    .ShowInput = True
+    .ShowError = True
+End With
+
+'Create table formating
+Range("A1:H500").Select
+Range("C10").Activate
+Application.CutCopyMode = False
+ActiveSheet.ListObjects.Add(xlSrcRange, Range("$A$1:$H$500"), , xlYes).Name = _
+    "Table2"
+Range("Table2[#All]").Select
+ActiveWindow.SmallScroll Down:=-3
+
+''''''''''''''''''''''''''''''''''
+'Set default status to -pending-
+Dim xCell As Range
+Dim xRg As Range
+Dim xAcCell As Range
+Dim xScreen As Boolean
+On Error Resume Next
+Set xAcCell = Application.ActiveCell
+Set xRg = ActiveSheet.UsedRange.SpecialCells(xlCellTypeAllValidation)
+If xRg Is Nothing Then
+    MsgBox "No data validation drop-down lists in current worksheet", vbInformation, "Kutools for Excel"
+    Exit Sub
+End If
+xScreen = Application.ScreenUpdating
+Application.ScreenUpdating = False
+For Each xCell In xRg
+    If xCell.Validation.Type = 3 Then
+        If xCell.Value = "" Then xCell.Value = "'- Pending -"
+    End If
+Next
+xAcCell.Select
+Application.ScreenUpdating = xScreen
+
+'Format each row height
+ActiveSheet.Rows("2:450").RowHeight = 36
+    
+Application.ScreenUpdating = True
+
+End Sub
+
+
+
+
+
+
+
+
+
+
+
+
+
