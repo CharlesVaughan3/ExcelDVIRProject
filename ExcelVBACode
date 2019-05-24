@@ -4,27 +4,24 @@ Option Explicit
 'NOTE:  Set reference to Microsoft Scripting Runtime
 Sub FindInFile()
     
+'Run the program every5 minutes once the Workbook is opened
+'Application.OnTime Now + TimeValue("00:05"), "FindInFile"
+
 'Set all variables
 Dim sBaseFolder As String, sFindText As String, sFindTracNum As String
 Dim sFindTrailNum As String, sFindRemarks As String, sFindDefect As String, sTracDef As String
-Dim sTrailDef As String, sTrailDef1 As String
-Dim fso As FileSystemObject, FIs As Files, FI As File, FO As Folder
-Dim TS As TextStream
+Dim sTrailDef As String, sTrailDef1 As String, sFindDate As String
+Dim fso As FileSystemObject, FIs As Files, FI As File, FO As Folder, TS As TextStream
 Dim colL As Collection, Status As Collection, TracNum As Collection, TrailNum As Collection
-Dim TractorDefect As Collection, TrailerDefect As Collection
-Dim Remarks As Collection, Defect As Collection, cL As cLines
-Dim S As String, C As String, strPath As String
-Dim I As Long, T As Long, G As Long, H As Long, J As Long, K As Long, L As Long, M As Long
-Dim R As Range, B As Range
+Dim TractorDefect As Collection, TrailerDefect As Collection, DateT As Collection, Comments As Collection
+Dim Remarks As Collection, Defect As Collection, cL As cLines, Acception5 As String
+Dim S As String, C As String, strPath As String, I As Long, R As Range, B As Range
 Dim wsRes As Worksheet, rRes As Range, vRes() As Variant
 Dim lo As ListObject, lRows As Long, sMoreDefects As String, sMoreTracDefects As String, sTrailAcception2 As String
 Dim sFindTrailDefects As String, sAcception As String, sTrailAcception As String, sTracDef1 As String
-Dim myPath As String, sStatus As String
-Dim Pending As String
-Dim sTrailAcception1 As String
-Dim xStrDate As String
-Dim Q As String, D1 As String, D2 As String, D3 As Long
-Dim Z As String
+Dim myPath As String, sStatus As String, sComments As String, Pending As String, sFindMessage As String
+Dim sFindComments As String, sTrailAcception1 As String, xStrDate As String
+Dim Q As String, D1 As String, D2 As String, D3 As Long, Z As String, FP As String
 
 'Set constant variables
 Pending = "Pending"
@@ -34,7 +31,7 @@ Z = "Trailer Defect?: Yes Yes"
 Q = " "
 
 'Set results worksheet and range
-Set wsRes = Worksheets("Sheet1")
+Set wsRes = Worksheets("DVIRReport")
 Set rRes = wsRes.Cells(1, 1)
    
 'Set text you will search for in files
@@ -55,7 +52,11 @@ sTrailAcception = "Defect?: Yes Trailer Defect"
 sTrailAcception1 = "Defect?: No Date"
 sTrailAcception2 = "No Date time:"
 sStatus = "Status: "
-
+sFindDate = "Sent:"
+sFindMessage = "IMessage / Form: DVIR Truck Trailer"
+sComments = "To: shop@stewarttransport.com, amanda@stewarttransport.com, cvaughan@stewarttransport.com"
+sFindComments = "Comments:"
+Acception5 = "More Tractor Defects?: Yes Trailer"
 
 'Specify the folder
 strPath = "T:\ExcelProject\DVIR's\"
@@ -65,31 +66,36 @@ Dim KCLR As Long
 KCLR = 500
 
 'For loop to delete files that have the truck problems solved written to text file
-For I = 1 To Rows.Count
-    If Cells(I, 8).Value = "Complete" Then
+For I = 2 To 250
+    'Declare variables
+    Dim iFileNum As Integer
+    Dim sFileName As String
+    Dim sBuf As String
+    Dim sTemp As String
+    
+    'Check if the user has selected complete on any of the DVIR's
+    If Cells(I, 9).Value = "Complete" Then
+        
         Set fso = VBA.CreateObject("Scripting.FileSystemObject")
-        myPath = Cells(I, 7)
+        myPath = Cells(I, 8)
         xStrDate = Format(Now, "yyyy-mm-dd hh-mm-ss")
         
         'Write complete to the completed DVIR, and attach a time stamp
-        Open "T:\ExcelProject\DVIR's\" & Cells(I, 7) For Append As #1
-        Print #1, "Status: Complete " & xStrDate
+        Open "T:\ExcelProject\DVIR's\" & Cells(I, 8) For Append As #1
+        Print #1, "Status: Complete " & xStrDate & " Comments: " & Cells(I, 11)
         Close #1
         
         'Copy File to another File path
-        fso.CopyFile ("T:\ExcelProject\DVIR's\" & Cells(I, 7)), "T:\ExcelProject\Complete DVIR's\", True
+        fso.CopyFile ("T:\ExcelProject\DVIR's\" & Cells(I, 8)), "T:\ExcelProject\Complete DVIR's\", True
         
         'Delete file
-        Kill "T:\ExcelProject\DVIR's\" & Cells(I, 7)
+        Kill "T:\ExcelProject\DVIR's\" & Cells(I, 8)
                        
     'Append the In Shop status to text file
-    ElseIf Cells(I, 8).Value = "In Shop" Then
-        Dim iFileNum As Integer
-        Dim sFileName As String
-        Dim sBuf As String
-        Dim sTemp As String
+    ElseIf Cells(I, 9).Value = "In Shop" Then
+        sTemp = " "
         
-        sFileName = "T:\ExcelProject\DVIR's\" & Cells(I, 7)
+        sFileName = "T:\ExcelProject\DVIR's\" & Cells(I, 8)
     
         iFileNum = FreeFile
         Open sFileName For Input As iFileNum
@@ -101,6 +107,109 @@ For I = 1 To Rows.Count
         Close iFileNum
     
         sTemp = Replace(sTemp, "IMessage / Form: DVIR Truck Trailer", "Status: In the Shop")
+    
+        iFileNum = FreeFile
+        Open sFileName For Output As iFileNum
+        Print #iFileNum, sTemp
+        Close iFileNum
+    'Append the Kenworth status to text file
+    ElseIf Cells(I, 9).Value = "Kenworth" Then
+        sTemp = " "
+        sFileName = "T:\ExcelProject\DVIR's\" & Cells(I, 8)
+    
+        iFileNum = FreeFile
+        Open sFileName For Input As iFileNum
+    
+        Do Until EOF(iFileNum)
+            Line Input #iFileNum, sBuf
+            sTemp = sTemp & sBuf & vbCrLf
+        Loop
+        Close iFileNum
+    
+        sTemp = Replace(sTemp, "IMessage / Form: DVIR Truck Trailer", "Status: At Kenworth")
+    
+        iFileNum = FreeFile
+        Open sFileName For Output As iFileNum
+        Print #iFileNum, sTemp
+        Close iFileNum
+    'Append the Freightliner status to text file
+    ElseIf Cells(I, 9).Value = "Freightliner" Then
+        sTemp = " "
+        sFileName = "T:\ExcelProject\DVIR's\" & Cells(I, 8)
+    
+        iFileNum = FreeFile
+        Open sFileName For Input As iFileNum
+    
+        Do Until EOF(iFileNum)
+            Line Input #iFileNum, sBuf
+            sTemp = sTemp & sBuf & vbCrLf
+        Loop
+        Close iFileNum
+    
+        sTemp = Replace(sTemp, "IMessage / Form: DVIR Truck Trailer", "Status: At Freightliner")
+    
+        iFileNum = FreeFile
+        Open sFileName For Output As iFileNum
+        Print #iFileNum, sTemp
+        Close iFileNum
+    'Append the Body Shop status to text file
+    ElseIf Cells(I, 9).Value = "Body Shop" Then
+        sTemp = " "
+        sFileName = "T:\ExcelProject\DVIR's\" & Cells(I, 8)
+    
+        iFileNum = FreeFile
+        Open sFileName For Input As iFileNum
+    
+        Do Until EOF(iFileNum)
+            Line Input #iFileNum, sBuf
+            sTemp = sTemp & sBuf & vbCrLf
+        Loop
+        Close iFileNum
+    
+        sTemp = Replace(sTemp, "IMessage / Form: DVIR Truck Trailer", "Status: At Body Shop")
+    
+        iFileNum = FreeFile
+        Open sFileName For Output As iFileNum
+        Print #iFileNum, sTemp
+        Close iFileNum
+    End If
+    '''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''''Get comments out and write them to the text file
+    If Cells(I, 9).Value = "Comment" Then
+        sTemp = " "
+        sFileName = "T:\ExcelProject\DVIR's\" & Cells(I, 8)
+    
+        iFileNum = FreeFile
+        Open sFileName For Input As iFileNum
+    
+        Do Until EOF(iFileNum)
+            Line Input #iFileNum, sBuf
+            sTemp = sTemp & sBuf & vbCrLf
+        Loop
+        Close iFileNum
+    
+        sTemp = Replace(sTemp, "To: shop@stewarttransport.com, amanda@stewarttransport.com, cvaughan@stewarttransport.com", "Comments: " & Cells(I, 10))
+    
+        iFileNum = FreeFile
+        Open sFileName For Output As iFileNum
+        Print #iFileNum, sTemp
+        Close iFileNum
+    '''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''''Additional comments, format the output to include previous comments
+    ElseIf Cells(I, 9).Value = "Additional Comment" Then
+        sTemp = " "
+        sFileName = "T:\ExcelProject\DVIR's\" & Cells(I, 8)
+    
+        iFileNum = FreeFile
+        Open sFileName For Input As iFileNum
+    
+        Do Until EOF(iFileNum)
+            Line Input #iFileNum, sBuf
+            sTemp = sTemp & sBuf & vbCrLf
+        Loop
+        Close iFileNum
+    
+        sTemp = Replace(sTemp, "Comments: ", "Comments: " & Cells(I, 10) & "  Previous Comment: ")
     
         iFileNum = FreeFile
         Open sFileName For Output As iFileNum
@@ -123,6 +232,8 @@ Set Defect = New Collection
 Set Status = New Collection
 Set TractorDefect = New Collection
 Set TrailerDefect = New Collection
+Set DateT = New Collection
+Set Comments = New Collection
 
 'Get each field out of the text files
 For Each FI In FIs
@@ -145,7 +256,7 @@ With FI
                     .LineText = S
                     .Pending = Pending
                 End With
-                
+                FP = FI.Name
                 colL.Add cL
             ElseIf InStr(1, S, sFindTrailNum, vbTextCompare) > 0 Then
                 With cL
@@ -165,6 +276,24 @@ With FI
                 End With
 
                 Status.Add cL
+            ElseIf InStr(1, S, sFindMessage, vbTextCompare) > 0 Then
+                With cL
+                    .Status = "Pending"
+                End With
+                
+                Status.Add cL
+            ElseIf InStr(1, S, sComments, vbTextCompare) > 0 Then
+                With cL
+                    .Comments = Q
+                End With
+                
+                Comments.Add cL
+            ElseIf InStr(1, S, sFindComments, vbTextCompare) > 0 Then
+                With cL
+                    .Comments = S
+                End With
+                
+                Comments.Add cL
             End If
             If InStr(1, S, sTracDef, vbTextCompare) > 0 Then
                 With cL
@@ -179,26 +308,37 @@ With FI
                 End With
                 
                 TractorDefect.Add cL
-            End If
-            
-            If InStr(1, S, sTrailDef, vbTextCompare) > 0 Then
+            ElseIf InStr(1, S, sFindDate, vbTextCompare) > 0 Then
+                With cL
+                    .DateT = S
+                End With
                 
+                DateT.Add cL
+            End If
+            If InStr(1, S, sTrailDef, vbTextCompare) > 0 Then
+            
                 If D = 0 Then
                   With cL
+                  'Write an empty space for when a DVIR includes multiple remarks
                       .LineText = Q
+                      .Folder = FI.Name
+                      .DateT = Q
                       .TracNum = Q
                       .TrailNum = Q
                       .TractorDefect = Q
                       .TrailerDefect = "Trailer Defect? Yes Yes"
                       .Status = Q
+                      .Comments = Q
                   End With
             
                       colL.Add cL
+                      DateT.Add cL
                       TrailNum.Add cL
                       TracNum.Add cL
                       TractorDefect.Add cL
                       TrailerDefect.Add cL
                       Status.Add cL
+                      Comments.Add cL
                       D3 = 1
                     Else
                         With cL
@@ -212,18 +352,26 @@ With FI
                 
                 If D = 0 Then
                   With cL
+                  'Write an empty space for when a DVIR includes multiple remarks
                       .LineText = Q
+                      .Folder = FI.Name
+                      .DateT = Q
                       .TracNum = Q
                       .TrailNum = Q
                       .TractorDefect = Q
                       .TrailerDefect = "Trailer Defect? Yes Yes"
+                      .Status = Q
+                      .Comments = Q
                   End With
             
                       colL.Add cL
+                      DateT.Add cL
                       TrailNum.Add cL
                       TracNum.Add cL
                       TractorDefect.Add cL
                       TrailerDefect.Add cL
+                      Status.Add cL
+                      Comments.Add cL
                       D3 = 1
                 Else
                         With cL
@@ -237,20 +385,26 @@ With FI
             
                 If D = 0 Then
                     With cL
+                    'Write an empty space for when a DVIR includes multiple remarks
                         .LineText = Q
+                        .Folder = FI.Name
+                        .DateT = Q
                         .TracNum = Q
                         .TrailNum = Q
                         .TractorDefect = Q
                         .TrailerDefect = Z
                         .Status = Q
+                        .Comments = Q
                     End With
                     
                     colL.Add cL
+                    DateT.Add cL
                     TrailNum.Add cL
                     TracNum.Add cL
                     TractorDefect.Add cL
                     TrailerDefect.Add cL
                     Status.Add cL
+                    Comments.Add cL
                 Else
                         With cL
                             .TrailerDefect = Z
@@ -279,7 +433,7 @@ With FI
                 
                 If D3 = 0 Then
                      With cL
-                         .TrailerDefect = Z
+                         .TrailerDefect = D2
                      End With
             
                      TrailerDefect.Add cL
@@ -293,43 +447,57 @@ With FI
 
                 TracNum.Add cL
             End If
-            
-            If InStr(1, S, sMoreDefects, vbTextCompare) > 0 Then
+            If InStr(1, S, Acception5, vbTextCompare) > 0 Then
+                                
+                
+            ElseIf InStr(1, S, sMoreDefects, vbTextCompare) > 0 Then
                                 
                 With cL
+                'Write an empty space for when a DVIR includes multiple remarks
                     .LineText = Q
+                    .DateT = Q
+                    .Folder = FI.Name
                     .TracNum = Q
                     .TrailNum = Q
                     .TractorDefect = Q
                     .TrailerDefect = Q
                     .Status = Q
+                    .Comments = Q
                 End With
 
                 colL.Add cL
+                DateT.Add cL
                 TrailNum.Add cL
                 TracNum.Add cL
                 TractorDefect.Add cL
                 TrailerDefect.Add cL
                 Status.Add cL
+                Comments.Add cL
             End If
              
             If InStr(1, S, sMoreTracDefects, vbTextCompare) > 0 Then
                 
                 With cL
+                'Write an empty space for when a DVIR includes multiple remarks
+                    .DateT = Q
+                    .Folder = FI.Name
                     .LineText = Q
                     .TracNum = Q
                     .TrailNum = Q
                     .TractorDefect = Q
                     .TrailerDefect = Q
                     .Status = Q
+                    .Comments = Q
                 End With
 
                 colL.Add cL
+                DateT.Add cL
                 TrailNum.Add cL
                 TracNum.Add cL
                 TractorDefect.Add cL
                 TrailerDefect.Add cL
                 Status.Add cL
+                Comments.Add cL
                 End If
         Loop
     End If
@@ -337,61 +505,76 @@ End With
 Next FI
 
 'Write the collection to a VBA array
-ReDim vRes(0 To Remarks.Count, 1 To 8)
+ReDim vRes(0 To Remarks.Count, 1 To 11)
 
 'Column Headers
 vRes(0, 1) = "Driver Name"
-vRes(0, 2) = "Tractor#"
-vRes(0, 3) = "Trailer#"
-vRes(0, 4) = "Tractor Defect"
-vRes(0, 5) = "Trailer Defect"
-vRes(0, 6) = "Remarks"
-vRes(0, 7) = "Path"
-vRes(0, 8) = "Status"
+vRes(0, 2) = "Date Recieved"
+vRes(0, 3) = "Tractor#"
+vRes(0, 4) = "Trailer#"
+vRes(0, 5) = "Tractor Defect"
+vRes(0, 6) = "Trailer Defect"
+vRes(0, 7) = "Remarks"
+vRes(0, 8) = "Path"
+vRes(0, 9) = "Status"
+vRes(0, 10) = "Comments"
+vRes(0, 11) = "Completed Comments"
 
 'Get all of the information on the correct line
 For I = 1 To colL.Count
 With colL(I)
     vRes(I, 1) = .LineText
-    vRes(I, 7) = .Folder
+    vRes(I, 8) = .Folder
 End With
 Next I
 
-For J = 1 To TracNum.Count
-With TracNum(J)
-    vRes(J, 2) = .TracNum
+For I = 1 To DateT.Count
+With DateT(I)
+    vRes(I, 2) = .DateT
 End With
-Next J
+Next I
 
-For T = 1 To TrailNum.Count
-With TrailNum(T)
-    vRes(T, 3) = .TrailNum
+For I = 1 To TracNum.Count
+With TracNum(I)
+    vRes(I, 3) = .TracNum
 End With
-Next T
+Next I
 
-For L = 1 To TractorDefect.Count
-With TractorDefect(L)
-    vRes(L, 4) = .TractorDefect
+For I = 1 To TrailNum.Count
+With TrailNum(I)
+    vRes(I, 4) = .TrailNum
 End With
-Next L
+Next I
 
-For M = 1 To TrailerDefect.Count
-With TrailerDefect(M)
-    vRes(M, 5) = .TrailerDefect
+For I = 1 To TractorDefect.Count
+With TractorDefect(I)
+    vRes(I, 5) = .TractorDefect
 End With
-Next M
+Next I
 
-For G = 1 To Remarks.Count
-With Remarks(G)
-    vRes(G, 6) = .Remarks
+For I = 1 To TrailerDefect.Count
+With TrailerDefect(I)
+    vRes(I, 6) = .TrailerDefect
 End With
-Next G
+Next I
 
-For K = 1 To Status.Count
-With Status(K)
-    vRes(K, 8) = .Status
+For I = 1 To Remarks.Count
+With Remarks(I)
+    vRes(I, 7) = .Remarks
 End With
-Next K
+Next I
+
+For I = 1 To Status.Count
+With Status(I)
+    vRes(I, 9) = .Status
+End With
+Next I
+
+For I = 1 To Comments.Count
+With Comments(I)
+    vRes(I, 10) = .Comments
+End With
+Next I
 
 'Write to the worksheet
 Application.ScreenUpdating = False
@@ -411,7 +594,10 @@ With rRes
         '.AutoFit
     End With
     .EntireColumn.AutoFit
-
+    
+    'If loop to make sure there is at least 1 entry
+    If colL.Count > 0 Then
+    
     'Remove the word that is found(shorten/format text)
     For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(1).Cells
         I = 1
@@ -425,7 +611,7 @@ With rRes
         Loop Until I = 0
     Next R
     
-    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(3).Cells
+    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(4).Cells
         I = 1
         Do
             I = InStr(I, R.Text, sFindTrailNum, vbTextCompare)
@@ -437,7 +623,7 @@ With rRes
         Loop Until I = 0
     Next R
     
-    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(6).Cells
+    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(7).Cells
         I = 1
         Do
             I = InStr(I, R.Text, sFindRemarks, vbTextCompare)
@@ -449,7 +635,7 @@ With rRes
         Loop Until I = 0
     Next R
     
-    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(2).Cells
+    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(3).Cells
         I = 1
         Do
             I = InStr(I, R.Text, sFindTracNum, vbTextCompare)
@@ -462,7 +648,7 @@ With rRes
         Loop Until I = 0
     Next R
     
-    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(8).Cells
+    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(9).Cells
         I = 1
         Do
             I = InStr(I, R.Text, sStatus, vbTextCompare)
@@ -475,7 +661,7 @@ With rRes
         Loop Until I = 0
     Next R
     
-    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(4).Cells
+    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(5).Cells
         I = 1
         Do
             I = InStr(I, R.Text, sTracDef, vbTextCompare)
@@ -488,7 +674,7 @@ With rRes
         Loop Until I = 0
     Next R
     
-    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(5).Cells
+    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(6).Cells
         I = 1
         Do
             I = InStr(I, R.Text, sTrailDef, vbTextCompare)
@@ -500,18 +686,43 @@ With rRes
             
         Loop Until I = 0
     Next R
+    
+    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(2).Cells
+        I = 1
+        Do
+            I = InStr(I, R.Text, sFindDate, vbTextCompare)
+            With R.Characters(I, Len(sFindDate))
+                .Delete
+            End With
+              
+            I = InStr(I + 1, R.Text, sFindDate, vbTextCompare)
+            
+        Loop Until I = 0
+    Next R
+   
+    For Each R In rRes.Offset(1).Resize(rRes.Rows.Count - 1).Columns(10).Cells
+        I = 1
+        Do
+            I = InStr(I, R.Text, sFindComments, vbTextCompare)
+            With R.Characters(I, Len(sFindComments))
+                .Delete
+            End With
+              
+            I = InStr(I + 1, R.Text, sFindComments, vbTextCompare)
+            
+        Loop Until I = 0
+    Next R
+    End If
 End With
 
-'Formatting specific Rows
-Columns("G:G").ColumnWidth = 0.23
-Columns("H:H").ColumnWidth = 17.83
+
     
 'Add the selection to Column G
-Columns("H:H").Select
+Columns("I:I").Select
 With Selection.Validation
     .Delete
     .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:= _
-    xlBetween, Formula1:="=Sheet2!$A$1:$A$3"
+    xlBetween, Formula1:="=List!$A$1:$A$8"
     .IgnoreBlank = True
     .InCellDropdown = True
     .InputTitle = ""
@@ -523,14 +734,32 @@ With Selection.Validation
 End With
 
 'Create table formating
-Range("A1:H500").Select
+Range("A1:K500").Select
 Range("C10").Activate
 Application.CutCopyMode = False
-ActiveSheet.ListObjects.Add(xlSrcRange, Range("$A$1:$H$500"), , xlYes).Name = _
+ActiveSheet.ListObjects.Add(xlSrcRange, Range("$A$1:$K$500"), , xlYes).Name = _
     "Table2"
 Range("Table2[#All]").Select
 ActiveWindow.SmallScroll Down:=-3
-
+    
+''''''''''''''''''''''''''''''''''
+'Formatting specific Rows
+Columns("H:H").ColumnWidth = 0.23
+Columns("I:I").ColumnWidth = 17.83
+Columns("J:J").ColumnWidth = 37.83
+Columns("G:G").ColumnWidth = 50.14
+Columns("F:F").ColumnWidth = 18.14
+Columns("F:F").ColumnWidth = 16.86
+Columns("F:F").ColumnWidth = 14.71
+Columns("F:F").ColumnWidth = 11.57
+Columns("E:E").ColumnWidth = 8
+Columns("E:E").ColumnWidth = 12.14
+Columns("D:D").ColumnWidth = 11.14
+Columns("C:C").ColumnWidth = 14
+Columns("C:C").ColumnWidth = 10.86
+Columns("D:D").ColumnWidth = 9
+Columns("B:B").ColumnWidth = 34.57
+Columns("A:A").ColumnWidth = 13
 ''''''''''''''''''''''''''''''''''
 'Set default status to -pending-
 Dim xCell As Range
@@ -560,6 +789,8 @@ ActiveSheet.Rows("2:450").RowHeight = 36
 Application.ScreenUpdating = True
 
 End Sub
+
+
 
 
 
