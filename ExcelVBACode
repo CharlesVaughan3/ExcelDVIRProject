@@ -20,7 +20,7 @@ Dim wsRes As Worksheet, rRes As Range, vRes() As Variant
 Dim lo As ListObject, lRows As Long, sMoreDefects As String, sMoreTracDefects As String, sTrailAcception2 As String
 Dim sFindTrailDefects As String, sAcception As String, sTrailAcception As String, sTracDef1 As String
 Dim myPath As String, sStatus As String, sComments As String, Pending As String, sFindMessage As String
-Dim sFindComments As String, sTrailAcception1 As String, xStrDate As String
+Dim sFindComments As String, sTrailAcception1 As String, xStrDate As String, Acception4 As String
 Dim Q As String, D1 As String, D2 As String, D3 As Long, Z As String, FP As String
 
 'Set constant variables
@@ -47,7 +47,7 @@ sTracDef1 = "Tractor Defect?: No"
 sFindTrailDefects = "No Trailer Defect?: Yes"
 sMoreDefects = "More Tractor defects?: Yes"
 sMoreTracDefects = "More Trailer defects?: Yes"
-sAcception = "Yes Trailer Defect Details?: Tires"
+sAcception = "Yes Trailer Defect Details?:"
 sTrailAcception = "Defect?: Yes Trailer Defect"
 sTrailAcception1 = "Defect?: No Date"
 sTrailAcception2 = "No Date time:"
@@ -57,6 +57,8 @@ sFindMessage = "IMessage / Form: DVIR Truck Trailer"
 sComments = "To: shop@stewarttransport.com, amanda@stewarttransport.com, cvaughan@stewarttransport.com"
 sFindComments = "Comments:"
 Acception5 = "More Tractor Defects?: Yes Trailer"
+Acception4 = "Defects?: Yes Tractor"
+
 
 'Specify the folder
 strPath = "T:\ExcelProject\DVIR's\"
@@ -381,6 +383,38 @@ With FI
                         D3 = 1
                 End If
                     TrailerDefect.Add cL
+            ElseIf InStr(1, S, sAcception, vbTextCompare) > 0 Then
+            
+                If D = 0 Then
+                    With cL
+                    'Write an empty space for when a DVIR includes multiple remarks
+                        .LineText = Q
+                        .Folder = FI.Name
+                        .DateT = Q
+                        .TracNum = Q
+                        .TrailNum = Q
+                        .TractorDefect = Q
+                        .TrailerDefect = Z
+                        .Status = Q
+                        .Comments = Q
+                    End With
+                    
+                    colL.Add cL
+                    DateT.Add cL
+                    TrailNum.Add cL
+                    TracNum.Add cL
+                    TractorDefect.Add cL
+                    TrailerDefect.Add cL
+                    Status.Add cL
+                    Comments.Add cL
+                Else
+                        With cL
+                            .TrailerDefect = Z
+                        End With
+                        
+                        D3 = 1
+                End If
+                    TrailerDefect.Add cL
             ElseIf InStr(1, S, sFindTrailDefects, vbTextCompare) > 0 Then
             
                 If D = 0 Then
@@ -425,7 +459,7 @@ With FI
             ElseIf InStr(1, S, sTrailAcception1, vbTextCompare) > 0 Then
                    
                 With cL
-                    .TrailerDefect = Z
+                    .TrailerDefect = D2
                 End With
        
                 TrailerDefect.Add cL
@@ -451,6 +485,30 @@ With FI
                                 
                 
             ElseIf InStr(1, S, sMoreDefects, vbTextCompare) > 0 Then
+                                
+                With cL
+                'Write an empty space for when a DVIR includes multiple remarks
+                    .LineText = Q
+                    .DateT = Q
+                    .Folder = FI.Name
+                    .TracNum = Q
+                    .TrailNum = Q
+                    .TractorDefect = Q
+                    .TrailerDefect = Q
+                    .Status = Q
+                    .Comments = Q
+                End With
+
+                colL.Add cL
+                DateT.Add cL
+                TrailNum.Add cL
+                TracNum.Add cL
+                TractorDefect.Add cL
+                TrailerDefect.Add cL
+                Status.Add cL
+                Comments.Add cL
+            
+            ElseIf InStr(1, S, Acception4, vbTextCompare) > 0 Then
                                 
                 With cL
                 'Write an empty space for when a DVIR includes multiple remarks
