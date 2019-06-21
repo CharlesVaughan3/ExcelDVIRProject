@@ -12,4 +12,6 @@ Once In Shop is selected in the status field, it writed "Status: In shop" to the
 adds "Status: Complete" with a timestamp of the current time to the file. This completed file is then added to a folder with all of the 
 completed DVIR's and it gets deleted from the folder that has all of the requests in it. Our shop will be using this to keep records of all of our DVIR's for every truck and trailer, and makes the proccess of completing the DVIR's go smoother.
 
+This spreadsheet also is very important for the second spreadsheet we have created for our operations department to view the trucks and trailers that have issues. It is a summary of this spreadsheet but has no functionality(And is better looking). 
+
 Any questions contact  cvaughan@stewarttransport.com
