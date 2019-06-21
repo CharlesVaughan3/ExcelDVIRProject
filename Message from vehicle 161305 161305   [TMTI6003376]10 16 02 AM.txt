@@ -1,0 +1,26 @@
+From:	v7654619@intouchmail.com
+Sent:	Wednesday, June 19, 2019 10:16 AM
+To:	Charles Vaughan
+Subject:	Message from vehicle 161305 161305   [TMTI6003376]
+
+161305 sent this message:
+
+To: shop@stewarttransport.com, amanda@stewarttransport.com, cvaughan@stewarttransport.com
+
+IMessage / Form: DVIR Truck Trailer
+Driver Name: fars
+Trailer #: 20682
+Defect Found?: Yes
+Tractor Defect?: Yes
+Tractor Defect Details?: Safety Equipment
+Remarks: SEATBELT REPAIRED
+More Tractor Defects?: No
+Trailer Defect?: No
+Date time: 06/19/2019 17:15:56 GMT
+Fuel: 44753
+Odometer: 308796
+Lat / Long: 33.4380805492401 -112.23521232605  (Excellent GPS)
+Location: Phoenix, AZ and In Tolleson, AZ Near I-10 (Excellent GPS)
+
+
+

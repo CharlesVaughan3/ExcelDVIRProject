@@ -1,0 +1,29 @@
+   From:	v6909790@intouchmail.com
+Sent:	Tuesday, June 18, 2019 4:53 AM
+To:	Charles Vaughan
+Subject:	Message from vehicle 162266 162266   [TMTI5998853]
+
+162266 sent this message:
+
+Comments: Test Comment
+
+IMessage / Form: DVIR Truck Trailer
+Driver Name: charles la chapelle
+Trailer #: 16639
+Defect Found?: Yes
+Tractor Defect?: Yes
+Tractor Defect Details?: Air Lines
+Remarks: air leak 
+More Tractor Defects?: No
+Trailer Defect?: No
+Date time: 06/18/2019 11:53:22 GMT
+Fuel: 50667
+Odometer: 358648
+Lat / Long: 34.0334451198578 -117.332337498665  (Excellent GPS)
+Location: Riverside, CA and In Colton, CA On I-215 (Excellent GPS)
+
+
+
+
+
+

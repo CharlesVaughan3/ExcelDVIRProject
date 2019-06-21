@@ -1,0 +1,28 @@
+From:	v7654596@intouchmail.com
+Sent:	Friday, June 21, 2019 3:06 AM
+To:	Charles Vaughan
+Subject:	Message from vehicle 161291 161291   [TMTI6010456]
+
+161291 sent this message:
+
+To: shop@stewarttransport.com, amanda@stewarttransport.com, cvaughan@stewarttransport.com
+
+IMessage / Form: DVIR Truck Trailer
+Driver Name: rogelio garcia
+Trailer #: 576
+Defect Found?: Yes
+Tractor Defect?: Yes
+Tractor Defect Details?: Other
+Remarks: truck has air leak causing pressure to drop from 120 psi to less than 50 psi within 10 minutes 
+when parked and turned off air leak coming from under driver seat and somewhere around drive tires. 
+truck scheduled to go out saturday night.
+More Tractor Defects?: No
+Trailer Defect?: No
+Date time: 06/21/2019 10:05:54 GMT
+Fuel: 49380
+Odometer: 348609
+Lat / Long: 33.4380161762238 -112.236328125  (Excellent GPS)
+Location: Phoenix, AZ and In Tolleson, AZ Near I-10 (Excellent GPS)
+
+
+
