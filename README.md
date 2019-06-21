@@ -10,7 +10,6 @@ to a text file and stores it in the folder I chose on our companies shared drive
 The spreadsheet has user functionality as it will allow the user to select if the request is Pending, In Shop, or Completed.
 Once In Shop is selected in the status field, it writed "Status: In shop" to the correct text file. Once it is completed it 
 adds "Status: Complete" with a timestamp of the current time to the file. This completed file is then added to a folder with all of the 
-completed DVIR's and it gets deleted from the folder that has all of the requests in it. We will be using this to keep records of all of
-our DVIR's for every truck and trailer, and makes the proccess of completing the DVIR's go smoother.
+completed DVIR's and it gets deleted from the folder that has all of the requests in it. Our shop will be using this to keep records of all of our DVIR's for every truck and trailer, and makes the proccess of completing the DVIR's go smoother.
 
 Any questions contact  cvaughan@stewarttransport.com
