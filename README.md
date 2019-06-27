@@ -7,6 +7,8 @@ that has occured and the status of the repairs. This program is also tied with a
 emails that we recieve from the drivers and automatically converts the ones that have the field "Defect found?: Yes"
 to a text file and stores it in the folder I chose on our companies shared drive. 
 
+The program searches each individual file for certain words like "Driver name:" and stores that line of text in a colection. These collections are later trimmed of the original word searched for and printed out line by line on the worksheet. There is no minimum or maximum number of files you can have in this folder, it will just make a difference in how long the worksheet is. The longer the worksheet the harder it is to maintain. With this in mind when we are first rolling this out we will empty the folder completely and start with the trucks that get DVIR's from that point on so we can keep up on the list. This first worksheet is very important to keep up on because if things are not accurate on this worksheet the Truck-Trailer Evaluation worksheet will also be inaccurate. We need to keep accurate data so it makes sense for every truck and trailer getting used. 
+
 The spreadsheet has user functionality as it will allow the user to select if the request is Pending, In Shop, or Completed.
 Once In Shop is selected in the status field, it writed "Status: In shop" to the correct text file. Once it is completed it 
 adds "Status: Complete" with a timestamp of the current time to the file. This completed file is then added to a folder with all of the 
